@@ -129,6 +129,34 @@ src/
    - Required field handling
    - Clean form reset after submission
 
+### Recent features (what's new)
+
+These features were added to improve usability and make the demo feel closer to a production contact manager.
+
+- Local persistence (localStorage)
+   - Contacts you add are persisted in your browser using localStorage under the key `tria_contacts_v1`.
+   - This means contacts survive page reloads and browser restarts on the same machine and browser profile.
+   - Implementation notes: data is serialized to JSON. If the stored data cannot be parsed it falls back to sample contacts.
+
+- Dark mode / Theme toggle
+   - A small theme toggle is available in the header area. It toggles a `dark` class on the `html` element.
+   - The preference is persisted to localStorage under the key `tria_theme` and applied before React mounts to avoid UI flash.
+
+- Sorting & advanced search
+   - Search now matches name, email, or phone.
+   - Sort options: Name A→Z, Name Z→A, Recently added (desc) and Oldest first.
+   - Search, tag filters and sorting work together.
+
+- Groups / Tags & Bulk Actions
+   - Contacts can have comma-separated tags (e.g. `family, work`).
+   - Tags appear as chips on contact cards and are aggregated in the sidebar as filter buttons.
+   - Select contacts using the checkbox on each card; bulk actions include Delete Selected, Export Selected (JSON), Select All Visible and Clear Selection.
+
+- Avatar upload + fallback avatar
+   - When adding a contact you can upload an avatar image (client-side only). Uploaded images are stored as base64 data URLs in localStorage (demo-only).
+   - If no avatar is provided the app uses an initials-based avatar generator (DiceBear) as a fallback.
+   - Notes: storing base64 images in localStorage is convenient for demos but not recommended for production because of size limits and performance — consider uploading to a CDN or server and storing URLs.
+
 ## Assumptions
 
 ## 📝 Implementation Details
