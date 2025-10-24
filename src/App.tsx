@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Contact } from './types';
 import ContactCard from './components/ContactCard';
 import AddContactDialog from './components/AddContactDialog';
