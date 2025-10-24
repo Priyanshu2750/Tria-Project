@@ -3,6 +3,10 @@ A modern contact management demo built with React, TypeScript, and Tailwind CSS.
 
 This repository contains a single-page app that demonstrates a clean contact list UI with search and the ability to add contacts.
 
+## Live Demo
+
+The application is deployed and can be accessed at: [https://tria-project-cgzi.vercel.app/](https://tria-project-cgzi.vercel.app/)
+
 ## Features
 
 - View a list of contacts with their details
