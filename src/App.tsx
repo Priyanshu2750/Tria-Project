@@ -61,6 +61,8 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>('name-asc');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
 
   // persist contacts to localStorage whenever they change
   useEffect(() => {
@@ -90,15 +92,19 @@ function App() {
 
   const filteredContacts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return sortedContacts;
-    return sortedContacts.filter(contact => {
+    let base = sortedContacts;
+    if (tagFilter) {
+      base = base.filter(c => (c.tags || []).includes(tagFilter));
+    }
+    if (!q) return base;
+    return base.filter(contact => {
       return (
         contact.name.toLowerCase().includes(q) ||
         contact.email.toLowerCase().includes(q) ||
         contact.phone.toLowerCase().includes(q)
       );
     });
-  }, [sortedContacts, searchQuery]);
+  }, [sortedContacts, searchQuery, tagFilter]);
 
   const handleAddContact = (newContact: Omit<Contact, 'id'>) => {
     const contact: Contact = {
@@ -107,6 +113,41 @@ function App() {
     };
     setContacts(prev => [...prev, contact]);
     setIsAddDialogOpen(false);
+  };
+
+  const allTags = useMemo(() => {
+    const s = new Set<string>();
+    contacts.forEach(c => (c.tags || []).forEach(t => t && s.add(t)));
+    return Array.from(s).sort();
+  }, [contacts]);
+
+  const toggleSelect = (id: string, checked: boolean) => {
+    setSelectedIds(prev => (checked ? Array.from(new Set([...prev, id])) : prev.filter(x => x !== id)));
+  };
+
+  const selectAllVisible = () => {
+    setSelectedIds(filteredContacts.map(c => c.id));
+  };
+
+  const clearSelection = () => setSelectedIds([]);
+
+  const deleteSelected = () => {
+    if (selectedIds.length === 0) return;
+    setContacts(prev => prev.filter(c => !selectedIds.includes(c.id)));
+    setSelectedIds([]);
+  };
+
+  const exportSelected = () => {
+    if (selectedIds.length === 0) return;
+    const selected = contacts.filter(c => selectedIds.includes(c.id));
+    const dataStr = JSON.stringify(selected, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contacts-export-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -129,6 +170,28 @@ function App() {
                 </span>
               </p>
             </div>
+            {allTags.length > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Tags</p>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setTagFilter(null)}
+                    className={`text-xs px-2 py-1 rounded-md ${tagFilter === null ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+                  >
+                    All
+                  </button>
+                  {allTags.map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setTagFilter(prev => prev === t ? null : t)}
+                      className={`text-xs px-2 py-1 rounded-md ${tagFilter === t ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Main Content */}
@@ -162,13 +225,23 @@ function App() {
                   Add New Contact
                 </Button>
               </div>
-            </div>
+              </div>
+
+            {selectedIds.length > 0 ? (
+              <div className="flex items-center gap-2">
+                <Button onClick={deleteSelected} className="bg-destructive text-destructive-foreground">Delete Selected</Button>
+                <Button onClick={exportSelected}>Export Selected</Button>
+                <Button onClick={clearSelection}>Clear Selection</Button>
+                <Button onClick={selectAllVisible}>Select All Visible</Button>
+                <div className="text-sm text-muted-foreground ml-4">{selectedIds.length} selected</div>
+              </div>
+            ) : null}
 
             <ScrollArea className="h-[calc(100vh-200px)]">
               {filteredContacts.length > 0 ? (
                 <div className="space-y-2">
                   {filteredContacts.map((contact) => (
-                    <ContactCard key={contact.id} contact={contact} />
+                    <ContactCard key={contact.id} contact={contact} selected={selectedIds.includes(contact.id)} onSelect={toggleSelect} />
                   ))}
                 </div>
               ) : (
