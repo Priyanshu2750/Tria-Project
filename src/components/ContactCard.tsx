@@ -47,7 +47,7 @@ const ContactCard = ({ contact, selected = false, onSelect }: ContactCardProps) 
           />
         </div>
 
-        <div className={`w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center font-semibold`}> 
+        <div className={`w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center font-semibold`}>
           {contact.avatar ? (
             <img src={avatarSrc} alt={contact.name} className="w-full h-full object-cover" />
           ) : (
